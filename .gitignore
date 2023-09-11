@@ -1,4 +1,1 @@
-node_modules/
-compose.yaml
-.env
-Dockerfile
+/compose.yaml
