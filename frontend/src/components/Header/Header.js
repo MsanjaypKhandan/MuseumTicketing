@@ -22,10 +22,10 @@ const Header = () => {
     const isAdminLoggedIn = useSelector((state)=>state.admin.isLogedIn);
   const isUserLoggedIn = useSelector((state)=>state.user.isLogedIn);
    const [museums,setMuseums] = useState([]);
-   const [value,setValue] = useState(0);
+  
    
     useEffect(()=>{
-        getAllMuseums()
+        getAllMuseums('Museum')
         .then((data) => setMuseums(data.museums || []))
         .catch((err) => console.log(err));
     },[]);
@@ -41,6 +41,7 @@ const Header = () => {
            navigate(`/booking/${museum._id}`)
       }
     }
+    
     return(
         <AppBar position='sticky' sx={{bgcolor:"#2b2d42", width: '100%'}} >
             <Toolbar>
@@ -50,7 +51,7 @@ const Header = () => {
                 </IconButton>
                 
                </Box>
-               <Box width="50%" margin={"auto"} >
+               <Box width="40%" margin={"auto"} >
                <Autocomplete
                onChange={handleChange}
         sx={{width: { xs: '100%', md: '60%' }, borderRadius:10,margin:"auto"}}
@@ -61,9 +62,10 @@ const Header = () => {
           placeholder='Search across various museums' />}
       />
                </Box>
-               <Box display="flex" sx={{display:{xs:'none',md:'flex'}}}>
-                <Tabs onChange={(e,val)=>setValue(val)} value={value} textColor='inherit'>
-                     <Tab  label="Museums" LinkComponent={Link} to="/museums" value={0}/> 
+               <Box display="flex"  flex={'block'} sx={{display:{xs:'none',md:'flex'}}}>
+                <Tabs indicatorColor='secondary' textColor='inherit'>
+                     <Tab  label="Museums" LinkComponent={Link} to="/Museum" /> 
+                     <Tab  label="Heritage Site" LinkComponent={Link} to="/Heritage_Site" value={0}/> 
                      {!isAdminLoggedIn && !isUserLoggedIn && <>
                         <Tab label="User"  LinkComponent={Link} to="/auth"  value={1}/>
                        <Tab label="Admin"  LinkComponent={Link} to="/admin" value={2}/>
@@ -77,7 +79,7 @@ const Header = () => {
                      {isAdminLoggedIn && <> 
 
                         <Tab label="Profile"  LinkComponent={Link} to="/User-admin"  value={1}/>
-                        <Tab label="Add Museums"  LinkComponent={Link} to="/add"  value={1}/>
+                        <Tab label="Add"  LinkComponent={Link} to="/add"  value={1}/>
                        <Tab onClick={() => logout(true)} label="Logout"  LinkComponent={Link} to="/" value={2}/>
                      </>}
                     
@@ -88,7 +90,8 @@ const Header = () => {
                           <MenuIcon/>
                           <Menu open={anchorNav} edge='start' >
                             <MenuList sx={{bgcolor:"#2b2d42",color:"white"}}>
-                              <MenuItem><Tab  label="Museums" LinkComponent={Link} to="/museums" value={0}/> </MenuItem>
+                              <MenuItem><Tab  label="Museums" LinkComponent={Link} to="/Museum" /> </MenuItem>
+                              <MenuItem><Tab  label="Heritage Sites" LinkComponent={Link} to="/Heritage_Site" value={0}/> </MenuItem>
                               {!isAdminLoggedIn && !isUserLoggedIn && <>
                               <MenuItem><Tab label="User"  LinkComponent={Link} to="/auth"  value={1}/></MenuItem> 
                                <MenuItem><Tab label="Admin"  LinkComponent={Link} to="/admin" value={2}/></MenuItem> 

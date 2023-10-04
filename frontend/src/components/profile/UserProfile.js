@@ -68,7 +68,7 @@ const Profile = () => {
          <ListItemText sx={{margin:1,width:"100%",
          textAlign:"left"}}>  <QRCode
          size={156}
-         style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+         style={{ maxWidth: "100%", width: "100%" }}
          value={booking.museum._id}
          viewBox={`0 0 156 156`}
          /></ListItemText>

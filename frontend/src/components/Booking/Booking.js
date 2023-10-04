@@ -7,6 +7,7 @@ import { Typography,Box, FormLabel, TextField, Button } from '@mui/material';
 
 const Booking = () => {
   const [museum,setMuseum] = useState();
+  const [croud,setCroud] = useState(1);
   const [bookingID,setBookingID] = useState();
   const navigate = useNavigate();
   const [inputs,setInputs] = useState({
@@ -14,20 +15,43 @@ const Booking = () => {
     date:""
   });
   const id = useParams().id;
- 
+ console.log(id);
   useEffect(() => {
     getMuseumDetails(id)
     .then((res) => setMuseum(res.museum))
     .catch((err) => console.log(err));
    
   },[id]);
-
+  console.log(museum);
   const handleChange = (e) => {
     setInputs((prev) => ({
       ...prev,
       [e.target.name]:e.target.value}));
   };
 
+  const getCurrentDate = () => {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = currentDate.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+const handleDate = (e) => {
+  const update = museum.bookings.reduce((count, booking) => {
+    // Check if the booking date matches the target date
+    console.log(e.target.value);
+    const bookingDate = new Date(booking.date);
+
+    if (bookingDate.toISOString().split('T')[0] === e.target.value) {
+      return count + booking.count;
+    }
+    return count;
+  }, 1)
+  setCroud(update);
+  
+}
+
+  
   const handleSubmit = (e) => {
     e.preventDefault();
      if(inputs.count ===''){
@@ -42,6 +66,7 @@ const Booking = () => {
         name: "Museum Ticketing",
         description : "For Museum TIcket Booking",
         handler : function(response) {
+
           newBooking({...inputs,museum:museum._id})
           .then((data) => {
             navigate('/user')
@@ -54,7 +79,7 @@ const Booking = () => {
           })
           .catch((err) => console.log(err));
 
-          sendEmail({...inputs,bookingID:bookingID,museum:museum.title})
+          sendEmail({...inputs,bookingID:bookingID,museum:museum.title,price:museum.price})
           .then((res) => console.log(res))
           .catch((err) => console.log(err));
 
@@ -107,7 +132,7 @@ const Booking = () => {
               <ul sx={{textAlign:"left"}}>{listItems}</ul>
               <Typography> <span style={{ fontWeight: 'bold',margin:"40px" }}>Location:</span>{museum.location}</Typography>
               <Typography><span style={{ fontWeight: 'bold', margin:"40px"}}>Price:</span>{museum.price}</Typography>
-                
+               {croud && <Typography><span style={{ fontWeight: 'bold', margin:"40px"}}>Footfall on Selected Date:</span>{croud}</Typography>} 
            </Box>
            </Box>
            <Box width={{ xs: '100%', md: '50%' }} paddingTop={5} >
@@ -133,7 +158,14 @@ const Booking = () => {
                      margin='date'
                      variant='standard'
                      value={inputs.date}
-                     onChange={handleChange}/>
+                     onChange={ (e) => {handleChange(e);
+                     handleDate(e);
+                     }}
+                     InputProps={{
+                      inputProps: {
+                        min: getCurrentDate(), // Set the minimum date
+                      },
+                    }}/>
                      <Button type="submit" sx={{mt:3}} width={"30%"} color='success' >Book Now</Button>
                 </Box>
               </form>

@@ -41,7 +41,7 @@ import {
              display: "-webkit-box",
              WebkitBoxOrient: "vertical",
              overflow: "hidden",
-             WebkitLineClamp: 2, // Display only 4 lines
+             WebkitLineClamp: 3, // Display only 4 lines
            }}>
             {description}
           </Typography>

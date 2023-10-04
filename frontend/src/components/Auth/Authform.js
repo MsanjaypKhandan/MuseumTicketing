@@ -21,6 +21,9 @@ const Authform = ({onsubmit,isadmin}) => {
     const handleSubmit = (e) => {
         e.preventDefault();
        onsubmit({inputs,signup: isadmin ? false : isSignup});
+       if(isSignup){
+        naviagate("/auth")
+       }
     }
   return (
     <div>

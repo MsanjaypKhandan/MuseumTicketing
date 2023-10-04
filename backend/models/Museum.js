@@ -29,7 +29,11 @@ const museumSchema = new mongoose.Schema({
      admin:{
       type: mongoose.Types.ObjectId,
       ref: "Admin",
-     } 
+     } ,
+     site :{
+      type:String,
+      required: true,
+     }
      
     
 });

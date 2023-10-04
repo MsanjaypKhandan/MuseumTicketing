@@ -1,7 +1,11 @@
 import axios from "axios";
 
-export const getAllMuseums = async () =>{
-    const res = await axios.get("/museum").catch((err) => console.log(err));
+export const getAllMuseums = async (site) =>{
+    const res = await axios.get("/museum",{
+        params: {
+        Site: site,
+        },
+    }).catch((err) => console.log(err));
 
     if(res.status !== 200){
         return console.log("No Data");
@@ -110,6 +114,7 @@ export const deleteBooking = async (id) => {
         posterUrl : data.posterUrl,
         location : data.location,
         price : data.price,
+        site : data.site,
         admin : localStorage.getItem("adminId"),
         
 

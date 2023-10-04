@@ -2,7 +2,7 @@ import User from "../../models/User.js"
 
 import nodemailer from "nodemailer";
 import qrcode from "qrcode";
-import fs from "fs";
+
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -16,8 +16,7 @@ const transporter = nodemailer.createTransport({
   });
 
 export const sendemail = async (req,res,next) => {
-    const{date,user,count,bookingId,museum} = req.body;
-    console.log(bookingId);
+    const{date,user,count,bookingId,museum,price} = req.body;
    
     let existingUser;
     try{
@@ -37,24 +36,24 @@ export const sendemail = async (req,res,next) => {
 
    
     const textTemplate = `
-      Museum Ticket Booking Confirmation
+      HistoriScan Ticket Booking Confirmation
 
       Dear ${existingUser.name},
 
-      Your museum ticket booking has been confirmed. Below are the details of your booking:
+      Your HistoriScan ticket booking has been confirmed. Below are the details of your booking:
 
       Movie: ${museum}
       Date: ${date}
       TIckets: ${count}
-      Total Amount: ${count*40}
+      Total Amount: ${count*price}
 
-      Thank you for using our museum ticket booking service. Enjoy your journey!
+      Thank you for using our HistoriScan ticket booking service. Enjoy your journey!
 
       This is an automated email. Please do not reply.
     `;
 
     var mailOptions = {
-        from : "sanjaym984062@gmail.com",
+        from : "HeritageCulture@gmail.com",
         to : existingUser.email,
         subject: 'Museum Ticket Booking Confirmation',
         text: textTemplate,

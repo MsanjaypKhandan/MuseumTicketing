@@ -14,6 +14,7 @@ import Booking from './components/Booking/Booking';
 import AddMuseum from './components/Museums/AddMuseum';
 import AdminProfile from './components/profile/AdminProfile';
 import Museumbooking from './components/Booking/Museumbookings';
+// import Museum from '../../backend/models/Museum';
 
 function App() {
   const dispatch = useDispatch();
@@ -35,7 +36,8 @@ function App() {
       <Header></Header>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/museums" element={<Museums />} />
+          <Route path="/Museum" element={<Museums Site={'Museum'}/>} />
+          <Route path="/Heritage_Site" element={<Museums Site={'Heritage_Site'} />} />
           <Route path="/admin" element={<AdminAuth />} />
           <Route path="/auth" element={<Auth />} />
           <Route path='/booking/:id' element={<Booking />} />

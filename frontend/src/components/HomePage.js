@@ -9,7 +9,7 @@ import MuseumItem from "./Museums/MuseumItem";
 const HomePage = () => {
   const [museums, setMuseums] = useState([]);
   useEffect(() => {
-    getAllMuseums()
+    getAllMuseums('Museum')
       .then((data) => setMuseums(data.museums))
       .catch((err) => console.log(err));
 
@@ -27,7 +27,7 @@ const HomePage = () => {
       <Button
         variant="contained"
         LinkComponent={Link}
-        to="/museums"
+        to="/Museum"
         style={{ position: 'absolute', top: '50%', left: '50%',  transform: 'translate(-50%, -50%)' }}
       >
         Explore Museums

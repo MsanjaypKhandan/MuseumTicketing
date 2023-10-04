@@ -4,6 +4,7 @@ import {deleteMuseum, getadminById, updateMuseum } from '../../api-helpers/api-h
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import UpdateIcon from '@mui/icons-material/Update';
 import { Dialog,FormLabel,Button,TextField, Box,  List, ListItem, ListItemText, Typography,IconButton } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -11,6 +12,7 @@ const labelProps = {mt: 1,mb: 1};
 
 const AdminProfile = () => {
   
+  const navigate = useNavigate()
    const [admin,setAdmin] = useState();
    const [museumId,setMuseumId] = useState();
    const [update,setUpdate] = useState(false);
@@ -56,9 +58,9 @@ const AdminProfile = () => {
          e.preventDefault();
          console.log(inputs);
          updateMuseum({museumId,...inputs}).then((res) => {console.log(res);
-          setSuccessMessage("Museum updated Sucessfuly")
+          setSuccessMessage("Updated Sucessfuly")
           setTimeout(() => {
-            window.location.reload();
+            navigate('/Museum');
           },1500);
 
          })

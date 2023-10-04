@@ -24,7 +24,7 @@ export const addMuseum = async(req,res,next) => {
     });
 
     //create new museum
-    const { title, description, posterUrl,location,price } =
+    const { title, description, posterUrl,location,price,site } =
     req.body;
   if (
     !title &&
@@ -35,7 +35,9 @@ export const addMuseum = async(req,res,next) => {
     posterUrl.trim() === "" &&
     !location &&
     location.trim() === "" &&
-    !price
+    !price && 
+    !site &&
+    !site.trim()  === ""
   ) {
     return res.status(422).json({ message: "Invalid Inputs" });
   }
@@ -45,7 +47,7 @@ export const addMuseum = async(req,res,next) => {
     let museum;
     try{
         museum = new Museum({
-            title,description,posterUrl,adminId,location,price
+            title,description,posterUrl,adminId,location,price,site
         });
         const session = await mongoose.startSession();
         const adminUser = await Admin.findById(adminId);
@@ -65,9 +67,11 @@ export const addMuseum = async(req,res,next) => {
 };
 
 export const getAllMuseums = async (req,res,next) => {
+    const  site  = req.query.Site;
+    
     let museums;
      try{
-        museums = await Museum.find();
+        museums = await Museum.find({ site });
      }catch(err){
         return console.log(err);
      }
