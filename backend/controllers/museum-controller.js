@@ -162,9 +162,9 @@ export const updateMuseum = async (req,res,next) => {
       { new: true } // Return the modified document rather than the original
     );
 
-    // if (!updatedMuseum) {
-    //   return res.status(404).json({ message: "Museum not found" });
-    // }
+    if (!updatedMuseum) {
+      return res.status(404).json({ message: "Museum not found" });
+    }
 
     return res.status(200).json({ museum: updatedMuseum });
   } catch (err) {
