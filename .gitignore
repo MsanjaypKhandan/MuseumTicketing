@@ -1,1 +1,7 @@
 /compose.yaml
+node_modules/
+backend/.env
+backend/qrcode.png
+frontend/build/
+.DS_Store
+*.log

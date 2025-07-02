@@ -1,78 +1,86 @@
-import User from "../../models/User.js"
-
+import User from "../../models/User.js";
 import nodemailer from "nodemailer";
 import qrcode from "qrcode";
+import path from "path";
+import os from "os";
 
-
-const transporter = nodemailer.createTransport({
+const createTransporter = () =>
+  nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
     secure: true,
     auth: {
-      // TODO: replace `user` and `pass` values from <https://forwardemail.net>
-      user: "sanjaym984062@gmail.COM",
-      pass: "jckj hoyp wchh hpjz",
+      user: process.env.SMTP_EMAIL,
+      pass: process.env.SMTP_APP_PASSWORD,
     },
   });
 
-export const sendemail = async (req,res,next) => {
-    const{date,user,count,bookingId,museum,price} = req.body;
-   
-    let existingUser;
-    try{
-        existingUser= await User.findById(user);
-    }catch(err){
-        return console.log(err);
-    }
-    console.log(existingUser.name,existingUser.email);
+export const sendemail = async (req, res, next) => {
+  const { date, user, count, bookingId, museum, price } = req.body;
 
-    const qrCodeData = `Museum: ${museum}
-    Tickets: ${count}
-    Date: ${date}
-    bookingId : ${bookingId}`;
-    const qrCodeImagePath = 'qrcode.png';
+  if (!date || !user || !count || !bookingId || !museum) {
+    return res.status(422).json({ message: "Missing required fields" });
+  }
 
+  let existingUser;
+  try {
+    existingUser = await User.findById(user);
+  } catch (err) {
+    return next(err);
+  }
+
+  if (!existingUser) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const qrCodeData = `Museum: ${museum}\nTickets: ${count}\nDate: ${date}\nBookingId: ${bookingId}`;
+  const qrCodeImagePath = path.join(os.tmpdir(), `qrcode-${bookingId}.png`);
+
+  try {
     await qrcode.toFile(qrCodeImagePath, qrCodeData);
+  } catch (err) {
+    return next(err);
+  }
 
-   
-    const textTemplate = `
-      HistoriScan Ticket Booking Confirmation
+  const totalAmount = price ? count * price : "N/A";
+  const textTemplate = `
+HistoriScan Ticket Booking Confirmation
 
-      Dear ${existingUser.name},
+Dear ${existingUser.name},
 
-      Your HistoriScan ticket booking has been confirmed. Below are the details of your booking:
+Your ticket booking has been confirmed. Below are the booking details:
 
-      Movie: ${museum}
-      Date: ${date}
-      TIckets: ${count}
-      Total Amount: ${count*price}
+Museum: ${museum}
+Date: ${date}
+Tickets: ${count}
+Total Amount: ₹${totalAmount}
+Booking ID: ${bookingId}
 
-      Thank you for using our HistoriScan ticket booking service. Enjoy your journey!
+Thank you for using HistoriScan. Enjoy your visit!
 
-      This is an automated email. Please do not reply.
-    `;
+This is an automated email. Please do not reply.
+  `.trim();
 
-    var mailOptions = {
-        from : "HeritageCulture@gmail.com",
-        to : existingUser.email,
-        subject: 'Museum Ticket Booking Confirmation',
-        text: textTemplate,
-        attachments: [
-          {
-            filename: 'qrcode.png',
-            path: qrCodeImagePath,
-            cid: 'unique@qrcode.com', // use a unique identifier for the CID
-          },
-        ],
-    };
- 
-     transporter.sendMail(mailOptions,function(error,info){
-        if(error){
-            console.log(error);
-        }
-        else{
-            console.log("Email send successfully");
-        }
-     })
-}
+  const mailOptions = {
+    from: `"HistoriScan" <${process.env.SMTP_EMAIL}>`,
+    to: existingUser.email,
+    subject: "Museum Ticket Booking Confirmation",
+    text: textTemplate,
+    attachments: [
+      {
+        filename: "ticket-qrcode.png",
+        path: qrCodeImagePath,
+        cid: `qrcode-${bookingId}@historiscan`,
+      },
+    ],
+  };
 
+  try {
+    const transporter = createTransporter();
+    await transporter.sendMail(mailOptions);
+    return res.status(200).json({ message: "Email sent successfully" });
+  } catch (err) {
+    console.error("[Email] Failed to send:", err.message);
+    return res.status(500).json({ message: "Failed to send confirmation email" });
+  }
+};
