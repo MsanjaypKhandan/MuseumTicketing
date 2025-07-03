@@ -1,25 +1,12 @@
 import Admin from "../models/Admin.js";
-import jwt from "jsonwebtoken";
 import Museum from "../models/Museum.js";
 import Bookings from "../models/Bookings.js";
 import mongoose from "mongoose";
 
 export const addMuseum = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Token Not Found" });
-  }
-  const extractedToken = authHeader.split(" ")[1];
-
-  let adminId;
-  try {
-    const decrypted = jwt.verify(extractedToken, process.env.SECRET_KEY);
-    adminId = decrypted.id;
-  } catch (err) {
-    return res.status(401).json({ message: err.message });
-  }
-
+  const adminId = req.adminId; // set by verifyToken middleware
   const { title, description, posterUrl, location, price, site } = req.body;
+
   if (
     !title || title.trim() === "" ||
     !description || description.trim() === "" ||
@@ -61,9 +48,6 @@ export const getAllMuseums = async (req, res, next) => {
   } catch (err) {
     return next(err);
   }
-  if (!museums) {
-    return res.status(500).json({ message: "Request Failed" });
-  }
   return res.status(200).json({ museums });
 };
 
@@ -83,20 +67,18 @@ export const getMuseumById = async (req, res, next) => {
 
 export const deleteMuseum = async (req, res, next) => {
   const id = req.params.id;
-  let museum;
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    museum = await Museum.findById(id).session(session);
+
+    const museum = await Museum.findById(id).session(session);
     if (!museum) {
       await session.abortTransaction();
       return res.status(404).json({ message: "Museum not found" });
     }
 
-    // Remove all bookings that belong to this museum
     await Bookings.deleteMany({ museum: id }, { session });
 
-    // Remove museum from admin's addedMuseum list
     if (museum.admin) {
       await Admin.findByIdAndUpdate(
         museum.admin,
@@ -119,17 +101,6 @@ export const deleteMuseum = async (req, res, next) => {
 
 export const updateMuseum = async (req, res, next) => {
   const museumId = req.params.id;
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Token Not Found" });
-  }
-  const extractedToken = authHeader.split(" ")[1];
-
-  try {
-    jwt.verify(extractedToken, process.env.SECRET_KEY);
-  } catch (err) {
-    return res.status(401).json({ message: err.message });
-  }
 
   const updateFields = {};
   if (req.body.title) updateFields.title = req.body.title;

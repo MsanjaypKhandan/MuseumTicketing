@@ -1,13 +1,13 @@
 import express from "express";
-import { addMuseum, deleteMuseum, getAllMuseums, getMuseumById,updateMuseum } from "../controllers/museum-controller.js";
-
+import { addMuseum, deleteMuseum, getAllMuseums, getMuseumById, updateMuseum } from "../controllers/museum-controller.js";
+import verifyToken from "../middleware/auth.js";
 
 const museumRouter = express.Router();
 
-museumRouter.post("/",addMuseum);
-museumRouter.get("/",getAllMuseums);
-museumRouter.get("/:id",getMuseumById);
-museumRouter.delete("/:id",deleteMuseum);
-museumRouter.put("/:id",updateMuseum);
+museumRouter.get("/", getAllMuseums);
+museumRouter.get("/:id", getMuseumById);
+museumRouter.post("/", verifyToken, addMuseum);
+museumRouter.put("/:id", verifyToken, updateMuseum);
+museumRouter.delete("/:id", deleteMuseum);
 
 export default museumRouter;
