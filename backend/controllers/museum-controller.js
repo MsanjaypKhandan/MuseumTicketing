@@ -2,6 +2,10 @@ import Admin from "../models/Admin.js";
 import Museum from "../models/Museum.js";
 import Bookings from "../models/Bookings.js";
 import mongoose from "mongoose";
+import { cache } from "../cache/cache.js";
+
+const MUSEUM_CACHE_PREFIX = "museums:";
+const invalidateMuseumCache = () => cache.delByPrefix(MUSEUM_CACHE_PREFIX);
 
 export const addMuseum = async (req, res, next) => {
   const adminId = req.adminId; // set by verifyToken middleware
@@ -37,18 +41,25 @@ export const addMuseum = async (req, res, next) => {
     session.endSession();
   }
 
+  await invalidateMuseumCache();
   return res.status(201).json({ museum });
 };
 
 export const getAllMuseums = async (req, res, next) => {
   const site = req.query.Site;
-  let museums;
+  const cacheKey = `${MUSEUM_CACHE_PREFIX}${site || "all"}`;
   try {
-    museums = await Museum.find(site ? { site } : {});
+    // Cache-aside: serve from cache on hit, else load and populate.
+    const cached = await cache.get(cacheKey);
+    if (cached) {
+      return res.status(200).json({ museums: cached, cached: true });
+    }
+    const museums = await Museum.find(site ? { site } : {});
+    await cache.set(cacheKey, museums, 300); // 5-minute TTL
+    return res.status(200).json({ museums });
   } catch (err) {
     return next(err);
   }
-  return res.status(200).json({ museums });
 };
 
 export const getMuseumById = async (req, res, next) => {
@@ -96,6 +107,7 @@ export const deleteMuseum = async (req, res, next) => {
     session.endSession();
   }
 
+  await invalidateMuseumCache();
   return res.status(200).json({ message: "Successfully Deleted" });
 };
 
@@ -122,6 +134,7 @@ export const updateMuseum = async (req, res, next) => {
     if (!updatedMuseum) {
       return res.status(404).json({ message: "Museum not found" });
     }
+    await invalidateMuseumCache();
     return res.status(200).json({ museum: updatedMuseum });
   } catch (err) {
     return next(err);
