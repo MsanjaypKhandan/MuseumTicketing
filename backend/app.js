@@ -1,5 +1,4 @@
 import express from "express";
-import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 
@@ -8,6 +7,13 @@ import adminRouter from "./routes/admin-routes.js";
 import emailRouter from "./routes/email-routes.js";
 import museumRouter from "./routes/museum-routes.js";
 import bookingRouter from "./routes/booking-routes.js";
+import waitlistRouter from "./routes/waitlist-routes.js";
+import notificationRouter from "./routes/notification-routes.js";
+import ticketRouter from "./routes/ticket-routes.js";
+
+import { connectDB } from "./config/db.js";
+import { registerSubscribers } from "./events/subscribers/index.js";
+import { startOutboxPoller } from "./events/dispatcher.js";
 import { requestLogger, errorHandler, logger } from "./middleware/logger.js";
 
 dotenv.config();
@@ -29,23 +35,24 @@ app.use("/user", userRouter);
 app.use("/admin", adminRouter);
 app.use("/museum", museumRouter);
 app.use("/booking", bookingRouter);
+app.use("/waitlist", waitlistRouter);
+app.use("/notification", notificationRouter);
+app.use("/ticket", ticketRouter);
 app.use("/sendEmail", emailRouter);
 
 app.use(errorHandler);
 
-const MONGODB_URI = process.env.MONGODB_URI;
-if (!MONGODB_URI) {
-  logger.error("MONGODB_URI environment variable is not set");
-  process.exit(1);
-}
+const start = async () => {
+  await connectDB();
 
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => {
-    const port = process.env.PORT || 5000;
-    app.listen(port, () => logger.info(`Server running on port ${port}`));
-  })
-  .catch((e) => {
-    logger.error("Database connection failed", { message: e.message });
-    process.exit(1);
-  });
+  // Wire the event-driven layer before serving traffic.
+  registerSubscribers();
+  startOutboxPoller(Number(process.env.OUTBOX_POLL_MS) || 10000);
+
+  const port = process.env.PORT || 5000;
+  app.listen(port, () => logger.info(`Server running on port ${port}`));
+};
+
+start();
+
+export default app;
