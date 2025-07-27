@@ -7,8 +7,10 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
-    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --testPathIgnorePatterns integration",
+    "test:integration": "NODE_OPTIONS=--experimental-vm-modules jest booking.integration --runInBand --globalSetup=./__tests__/setup.replset.cjs --globalTeardown=./__tests__/teardown.replset.cjs",
+    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "seed": "node scripts/seed.js"
   },
   "author": "",
   "license": "ISC",
@@ -25,6 +27,7 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
+    "mongodb-memory-server": "^11.2.0",
     "nodemon": "^3.0.1"
   },
   "jest": {
