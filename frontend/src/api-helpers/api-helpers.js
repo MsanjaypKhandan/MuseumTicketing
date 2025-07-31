@@ -57,18 +57,65 @@ export const getMuseumDetails = async (id) => {
 }
 
 export const newBooking = async(data) => {
-    const res = await axios.post("/booking",{
-        museum : data.museum,
-        date:data.date,
-        user: localStorage.getItem("userId"),
-        count:data.count,
-    })
-    .catch((err) => console.log(err));
-    if(res.status !== 201){
-        return console.log("Error");
+    try {
+        const res = await axios.post("/booking", {
+            slotId: data.slotId,
+            user: localStorage.getItem("userId"),
+            count: data.count,
+        });
+        return res.data;
+    } catch (err) {
+        // Surface SLOT_FULL so the UI can offer the waitlist
+        if (err.response?.status === 409) {
+            return { error: true, code: err.response.data.code, message: err.response.data.message };
+        }
+        console.log(err);
+        return { error: true, message: err.response?.data?.message || "Booking failed" };
     }
-    const resData = await res.data
-    return resData;
+}
+
+// List bookable slots for a museum (optionally filtered by date)
+export const getSlots = async (museumId, date) => {
+    const res = await axios
+        .get(`/museum/${museumId}/slots`, { params: date ? { date } : {} })
+        .catch((err) => console.log(err));
+    return res?.data?.slots || [];
+}
+
+// Join the waitlist for a full slot
+export const joinWaitlist = async ({ slotId, count }) => {
+    try {
+        const res = await axios.post("/waitlist", {
+            slotId,
+            user: localStorage.getItem("userId"),
+            count,
+        });
+        return res.data;
+    } catch (err) {
+        console.log(err);
+        return { error: true, message: err.response?.data?.message || "Could not join waitlist" };
+    }
+}
+
+// In-app notifications for the logged-in user
+export const getNotifications = async () => {
+    const id = localStorage.getItem("userId");
+    const res = await axios.get(`/notification/user/${id}`).catch((err) => console.log(err));
+    return res?.data?.notifications || [];
+}
+
+export const markNotificationRead = async (notificationId) => {
+    const id = localStorage.getItem("userId");
+    const res = await axios
+        .patch(`/notification/user/${id}/${notificationId}/read`)
+        .catch((err) => console.log(err));
+    return res?.data;
+}
+
+// Fetch the signed QR ticket for a confirmed booking
+export const getTicket = async (bookingId) => {
+    const res = await axios.get(`/ticket/${bookingId}`).catch((err) => console.log(err));
+    return res?.data;
 }
 
 export const getUserBooking = async () => {
@@ -167,6 +214,7 @@ export const deleteBooking = async (id) => {
             count:data.count,
             bookingId : data.bookingID,
             museum:data.museum,
+            price: data.price,
         },
         {
         headers : {
