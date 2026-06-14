@@ -129,3 +129,4 @@ The backend mounts these routers (see [backend/app.js](backend/app.js)); base UR
   mapped to the files that implement it.
 - [docs/adr/](docs/adr/) — Architecture Decision Records (modular monolith, MongoDB
   transactions, JWT auth, QR/email tickets, payments).
+
